@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antigravity Wireless Receiver</title>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% 50%, #0d0f1a 0%, #05060b 100%);
+      --card-bg: rgba(20, 24, 45, 0.45);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #d946ef;
+      --accent-glow: rgba(217, 70, 239, 0.4);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.3);
+      --warning: #f59e0b;
+      --font-family: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    .light-theme {
+      --bg-gradient: radial-gradient(circle at 50% 50%, #f9fafb 0%, #e5e7eb 100%);
+      --card-bg: rgba(255, 255, 255, 0.7);
+      --card-border: rgba(0, 0, 0, 0.06);
+      --text-main: #111827;
+      --text-muted: #4b5563;
+      --accent: #c026d3;
+      --accent-glow: rgba(192, 38, 211, 0.2);
+      --success: #059669;
+      --success-glow: rgba(5, 150, 105, 0.2);
+      --warning: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      background: rgba(0, 0, 0, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      color: var(--accent);
+      filter: drop-shadow(0 0 8px var(--accent-glow));
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px var(--accent-glow)); }
+      50% { transform: scale(1.05); filter: drop-shadow(0 0 12px var(--accent-glow)); }
+    }
+
+    .logo-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      background: linear-gradient(135deg, var(--text-main) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .theme-toggle, .status-indicator {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--warning);
+      box-shadow: 0 0 8px var(--warning);
+    }
+
+    .status-dot.connected {
+      background-color: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .glass-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.75rem;
+    }
+
+    .panel-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .panel-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: transparent;
+      color: white;
+    }
+
+    .btn.primary:hover {
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .arena-container {
+      position: relative;
+      flex: 1;
+      min-height: 350px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .typing-arena {
+      flex: 1;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      color: var(--text-main);
+      font-family: var(--font-family);
+      font-size: 1.25rem;
+      line-height: 1.6;
+      resize: none;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .typing-arena:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    .arena-overlay-key {
+      position: absolute;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--accent);
+      color: white;
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      font-weight: 700;
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0.6);
+      box-shadow: 0 0 20px var(--accent-glow);
+      pointer-events: none;
+      transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .arena-overlay-key.active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Stats Panel Styles */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--accent);
+    }
+
+    /* Key Visualizer Styles */
+    .keyboard-visualizer {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      background: rgba(0, 0, 0, 0.15);
+      border: 1px solid var(--card-border);
+      padding: 0.75rem;
+      border-radius: 16px;
+    }
+
+    .keyboard-row {
+      display: flex;
+      gap: 0.4rem;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .v-key {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      height: 32px;
+      min-width: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s;
+      flex: 1;
+    }
+
+    .v-key.active {
+      background: var(--accent);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 0 12px var(--accent-glow);
+      transform: scale(0.95);
+    }
+
+    /* Activity Feed Styles */
+    .activity-feed-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .feed-container {
+      flex: 1;
+      min-height: 180px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .feed-item {
+      display: flex;
+      gap: 0.5rem;
+      opacity: 0.8;
+    }
+
+    .feed-item .time {
+      color: var(--text-muted);
+    }
+
+    .feed-item .type {
+      font-weight: bold;
+    }
+
+    .feed-item .type.down { color: var(--accent); }
+    .feed-item .type.up { color: var(--success); }
+    .feed-item .type.move { color: #3b82f6; }
+    .feed-item .type.click { color: #ef4444; }
+
+    .feed-item .content {
+      color: var(--text-main);
+    }
+
+    /* Floating canvas particle overlay */
+    #canvas-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas-overlay"></canvas>
+
+  <header>
+    <div class="logo-container">
+      <i data-lucide="keyboard" class="logo-icon"></i>
+      <h1 class="logo-title">ANTIGRAVITY</h1>
+    </div>
+    <div class="header-actions">
+      <button class="status-indicator" id="connection-status">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">Disconnected</span>
+      </button>
+      <button class="theme-toggle" id="theme-btn">
+        <i data-lucide="sun" id="theme-icon"></i>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left Column: Typing Arena and Key Visualizer -->
+    <div class="glass-panel" style="grid-row: span 2;">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <i data-lucide="edit-3" style="width: 18px; color: var(--accent);"></i>
+          Live Typing Arena
+        </h2>
+        <div class="panel-actions">
+          <button class="btn" id="btn-copy">
+            <i data-lucide="copy" style="width: 14px;"></i> Copy
+          </button>
+          <button class="btn" id="btn-speak">
+            <i data-lucide="volume-2" style="width: 14px;"></i> Speak
+          </button>
+          <button class="btn" id="btn-download">
+            <i data-lucide="download" style="width: 14px;"></i> Save
+          </button>
+          <button class="btn" id="btn-clear" style="color: #ef4444;">
+            <i data-lucide="trash-2" style="width: 14px;"></i> Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="arena-container">
+        <textarea class="typing-arena" id="arena" placeholder="Start typing on your mobile device to see the input appear here in real-time..."></textarea>
+        <div class="arena-overlay-key" id="overlay-key">A</div>
+      </div>
+
+      <div class="panel-header" style="border-top: 1px solid var(--card-border); padding-top: 1rem;">
+        <h2 class="panel-title">
+          <i data-lucide="eye" style="width: 18px; color: var(--accent);"></i>
+          Overlay Key Visualizer
+        </h2>
+      </div>
+
+      <div class="keyboard-visualizer">
+        <div class="keyboard-row" id="row-1">
+          <div class="v-key" id="key-q">Q</div>
+          <div class="v-key" id="key-w">W</div>
+          <div class="v-key" id="key-e">E</div>
+          <div class="v-key" id="key-r">R</div>
+          <div class="v-key" id="key-t">T</div>
+          <div class="v-key" id="key-y">Y</div>
+          <div class="v-key" id="key-u">U</div>
+          <div class="v-key" id="key-i">I</div>
+          <div class="v-key" id="key-o">O</div>
+          <div class="v-key" id="key-p">P</div>
+        </div>
+        <div class="keyboard-row" id="row-2">
+          <div class="v-key" id="key-a">A</div>
+          <div class="v-key" id="key-s">S</div>
+          <div class="v-key" id="key-d">D</div>
+          <div class="v-key" id="key-f">F</div>
+          <div class="v-key" id="key-g">G</div>
+          <div class="v-key" id="key-h">H</div>
+          <div class="v-key" id="key-j">J</div>
+          <div class="v-key" id="key-k">K</div>
+          <div class="v-key" id="key-l">L</div>
+        </div>
+        <div class="keyboard-row" id="row-3">
+          <div class="v-key" style="flex: 1.5;" id="key-shift">Shift</div>
+          <div class="v-key" id="key-z">Z</div>
+          <div class="v-key" id="key-x">X</div>
+          <div class="v-key" id="key-c">C</div>
+          <div class="v-key" id="key-v">V</div>
+          <div class="v-key" id="key-b">B</div>
+          <div class="v-key" id="key-n">N</div>
+          <div class="v-key" id="key-m">M</div>
+          <div class="v-key" style="flex: 1.5;" id="key-backspace">Backspace</div>
+        </div>
+        <div class="keyboard-row" id="row-4">
+          <div class="v-key" style="flex: 1.5;" id="key-ctrl">Ctrl</div>
+          <div class="v-key" style="flex: 1.5;" id="key-alt">Alt</div>
+          <div class="v-key" style="flex: 5;" id="key-space">Space</div>
+          <div class="v-key" style="flex: 2;" id="key-enter">Enter</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Performance and Hacker HUD Logs -->
+    <div class="glass-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <i data-lucide="bar-chart-2" style="width: 18px; color: var(--accent);"></i>
+          Real-time Analytics
+        </h2>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">WPM</span>
+          <span class="stat-value" id="stat-wpm">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Keys</span>
+          <span class="stat-value" id="stat-keys">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Ping</span>
+          <span class="stat-value" id="stat-ping">-- ms</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-panel activity-feed-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <i data-lucide="terminal" style="width: 18px; color: var(--accent);"></i>
+          Live Stream Engine
+        </h2>
+        <span class="stat-label" style="font-family: var(--font-mono);" id="latency-val">0.0ms</span>
+      </div>
+
+      <div class="feed-container" id="feed">
+        <div style="color: var(--text-muted); text-align: center; margin-top: 3rem;">Waiting for keyboard connection...</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Theme state
+    let isDark = true;
+    const body = document.body;
+    const themeBtn = document.getElementById('theme-btn');
+    const themeIcon = document.getElementById('theme-icon');
+
+    themeBtn.addEventListener('click', () => {
+      isDark = !isDark;
+      if (isDark) {
+        body.classList.remove('light-theme');
+        themeIcon.setAttribute('data-lucide', 'sun');
+      } else {
+        body.classList.add('light-theme');
+        themeIcon.setAttribute('data-lucide', 'moon');
+      }
+      lucide.createIcons();
+    });
+
+    // Typography & Visualizer
+    const arena = document.getElementById('arena');
+    const overlayKey = document.getElementById('overlay-key');
+    const statWpm = document.getElementById('stat-wpm');
+    const statKeys = document.getElementById('stat-keys');
+    const statPing = document.getElementById('stat-ping');
+    const feed = document.getElementById('feed');
+    const latencyVal = document.getElementById('latency-val');
+
+    let totalKeys = 0;
+    let keyTimes = [];
+    let latencyInterval = null;
+
+    // Audio effects for click feedback
+    const playClickSound = () => {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(150, audioCtx.currentTime); // Low mechanical click frequency
+      osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.05);
+      
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+      
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.06);
+    };
+
+    // Canvas Sparks setup
+    const canvas = document.getElementById('canvas-overlay');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    let particles = [];
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.size = Math.random() * 4 + 2;
+        this.speedX = Math.random() * 6 - 3;
+        this.speedY = Math.random() * 6 - 3;
+        this.color = color || 'rgba(217, 70, 239, 0.8)';
+        this.alpha = 1;
+        this.decay = Math.random() * 0.02 + 0.015;
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.alpha -= this.decay;
+      }
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function createExplosion(x, y) {
+      const colors = ['#d946ef', '#ec4899', '#3b82f6', '#10b981'];
+      const chosenColor = colors[Math.floor(Math.random() * colors.length)];
+      for (let i = 0; i < 15; i++) {
+        particles.push(new Particle(x, y, chosenColor));
+      }
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles = particles.filter(p => p.alpha > 0);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // Trigger visual pop at the text cursor coordinates or screen center
+    function spawnVisualSpark() {
+      const rect = arena.getBoundingClientRect();
+      const x = rect.left + Math.random() * rect.width;
+      const y = rect.top + Math.random() * rect.height;
+      createExplosion(x, y);
+    }
+
+    // Key map overlay trigger
+    function highlightKey(key, isActive) {
+      const element = document.getElementById(`key-${key.toLowerCase()}`);
+      if (element) {
+        if (isActive) {
+          element.classList.add('active');
+        } else {
+          element.classList.remove('active');
+        }
+      }
+    }
+
+    // Append to logger window
+    function appendLog(type, content, className) {
+      if (feed.innerText.includes("Waiting for keyboard connection")) {
+        feed.innerHTML = '';
+      }
+      const item = document.createElement('div');
+      item.className = 'feed-item';
+      
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+      
+      item.innerHTML = `
+        <span class="time">[${timeStr}]</span>
+        <span class="type ${className}">${type.toUpperCase()}</span>
+        <span class="content">${content}</span>
+      `;
+      feed.appendChild(item);
+      feed.scrollTop = feed.scrollHeight;
+      
+      // Cap log entries at 50 to maintain performance
+      while (feed.children.length > 50) {
+        feed.removeChild(feed.firstChild);
+      }
+    }
+
+    // Connect to WebSocket Server (hosted on this same device)
+    const host = window.location.host;
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${host}`;
+    
+    let ws;
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+
+    function connect() {
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        statusDot.className = 'status-dot connected';
+        statusText.innerText = 'Active connected';
+        appendLog('sys', 'Web Receiver Connected to server', 'up');
+        
+        // Start ping checks
+        let startPing;
+        latencyInterval = setInterval(() => {
+          startPing = Date.now();
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: 'ping' }));
+          }
+        }, 3000);
+        
+        ws.onmessage = (event) => {
+          const msg = JSON.parse(event.data);
+          
+          if (msg.type === 'ping') {
+            const delay = Date.now() - startPing;
+            statPing.innerText = `${delay} ms`;
+            latencyVal.innerText = `${delay}.0ms`;
+            return;
+          }
+
+          if (msg.type === 'system') {
+            appendLog('sys', msg.text, 'up');
+            return;
+          }
+
+          // Mechanical typing sound option
+          playClickSound();
+
+          // Handle Key events
+          if (msg.type === 'keydown') {
+            highlightKey(msg.key, true);
+            appendLog('down', `Key: ${msg.key} | Code: ${msg.code || '--'}`, 'down');
+            
+            // Increment statistics
+            totalKeys++;
+            statKeys.innerText = totalKeys;
+            keyTimes.push(Date.now());
+            calculateWPM();
+            
+            // Flash on overlay popup
+            overlayKey.innerText = msg.key.length === 1 ? msg.key.toUpperCase() : msg.key;
+            overlayKey.classList.add('active');
+            spawnVisualSpark();
+
+            // Perform manual text entry on web if not Windows system level or for direct display
+            handleTextAreaInjection(msg);
+          } 
+          else if (msg.type === 'keyup') {
+            highlightKey(msg.key, false);
+            appendLog('up', `Key: ${msg.key} | Code: ${msg.code || '--'}`, 'up');
+            setTimeout(() => {
+              overlayKey.classList.remove('active');
+            }, 100);
+          }
+          else if (msg.type === 'string') {
+            appendLog('str', `Macro Insert: "${msg.value}"`, 'up');
+            insertTextAtCursor(msg.value);
+            spawnVisualSpark();
+          }
+          else if (msg.type === 'mouse_move') {
+            appendLog('move', `Trackpad move: dx=${msg.dx}, dy=${msg.dy}`, 'move');
+          }
+          else if (msg.type === 'mouse_click') {
+            appendLog('click', `Button click: ${msg.button} ${msg.up ? 'Up' : 'Down'}`, 'click');
+          }
+        };
+      };
+
+      ws.onclose = () => {
+        statusDot.className = 'status-dot';
+        statusText.innerText = 'Disconnected';
+        clearInterval(latencyInterval);
+        appendLog('sys', 'Server socket closed. Attempting reconnect...', 'down');
+        setTimeout(connect, 3000);
+      };
+      
+      ws.onerror = (err) => {
+        console.error(err);
+      };
+    }
+
+    connect();
+
+    // WPM calculation engine
+    function calculateWPM() {
+      const now = Date.now();
+      // Only keep keystrokes from the last 60 seconds
+      keyTimes = keyTimes.filter(t => now - t < 60000);
+      
+      // Standard WPM: (Total characters / 5) / time elapsed in minutes
+      // Since our array length is character taps within a minute, WPM is roughly taps / 5
+      const wpm = Math.round(keyTimes.length / 5);
+      statWpm.innerText = wpm;
+    }
+
+    // Append characters dynamically inside text arena
+    function handleTextAreaInjection(msg) {
+      const key = msg.key;
+      
+      if (key.length === 1) {
+        // Standard text key
+        insertTextAtCursor(key);
+      } else if (key === 'Enter') {
+        insertTextAtCursor('\n');
+      } else if (key === 'Backspace') {
+        deleteCharacter();
+      } else if (key === 'Space') {
+        insertTextAtCursor(' ');
+      } else if (key === 'Tab') {
+        insertTextAtCursor('    ');
+      }
+    }
+
+    function insertTextAtCursor(text) {
+      const start = arena.selectionStart;
+      const end = arena.selectionEnd;
+      const currentVal = arena.value;
+      
+      arena.value = currentVal.substring(0, start) + text + currentVal.substring(end);
+      arena.selectionStart = arena.selectionEnd = start + text.length;
+      arena.focus();
+    }
+
+    function deleteCharacter() {
+      const start = arena.selectionStart;
+      const end = arena.selectionEnd;
+      const currentVal = arena.value;
+      
+      if (start === end && start > 0) {
+        arena.value = currentVal.substring(0, start - 1) + currentVal.substring(end);
+        arena.selectionStart = arena.selectionEnd = start - 1;
+      } else if (start !== end) {
+        arena.value = currentVal.substring(0, start) + currentVal.substring(end);
+        arena.selectionStart = arena.selectionEnd = start;
+      }
+      arena.focus();
+    }
+
+    // Button actions
+    document.getElementById('btn-copy').addEventListener('click', () => {
+      arena.select();
+      document.execCommand('copy');
+      alert('Copied to clipboard!');
+    });
+
+    document.getElementById('btn-speak').addEventListener('click', () => {
+      const text = arena.value;
+      if (text && window.speechSynthesis) {
+        const speech = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(speech);
+      } else {
+        alert('Text-to-Speech not supported or arena is empty.');
+      }
+    });
+
+    document.getElementById('btn-download').addEventListener('click', () => {
+      const text = arena.value;
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'antigravity_typed_doc.txt';
+      link.click();
+    });
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      arena.value = '';
+      totalKeys = 0;
+      statKeys.innerText = '0';
+      statWpm.innerText = '0';
+      keyTimes = [];
+    });
+  </script>
+</body>
+</html>

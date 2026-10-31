@@ -1,0 +1,13 @@
+{
+  "name": "keyboard-desktop-receiver",
+  "version": "1.0.0",
+  "description": "Ultra-low-latency desktop input receiver and web visualizer",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "private": true
+}
